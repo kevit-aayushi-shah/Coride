@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CORIDE · Find a ride</title>
+<meta name="theme-color" content="#0C3768">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --navy: #0C3768;
+  --green: #1E7A34;
+  --purple: #6D40C4;
+  --amber: #A77A16;
+  --ink: #102033;
+  --muted: #5A6B7E;
+  --line: #E2EAE4;
+  --line-soft: #DEE7E1;
+  --surface: #FFFFFF;
+  --surface-soft: #F4F8F5;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; height: 100%; }
+
+body {
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input { font-family: inherit; }
+a { text-decoration: none; color: inherit; }
+:focus-visible { outline: 3px solid rgba(18,165,179,0.55); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* map */
+.map { position: relative; flex-shrink: 0; height: 46%; min-height: 280px; overflow: hidden; background: #E7EEE9; transition: height 0.22s ease; }
+.map svg { display: block; width: 100%; height: 100%; }
+.screen[data-step="2"] .map { height: 27%; min-height: 180px; }
+
+@media (prefers-reduced-motion: reduce) { .map { transition: none; } }
+
+/* floating chrome */
+.topbar { position: absolute; top: 18px; left: 18px; right: 18px; z-index: 3; display: flex; align-items: center; gap: 10px; }
+.topbar--split { justify-content: space-between; }
+
+.brandmark {
+  display: flex; align-items: center; gap: 9px; height: 46px; padding: 0 16px;
+  background: var(--surface); border-radius: 23px;
+  box-shadow: 0 6px 18px rgba(16,32,51,0.14);
+}
+
+.brandmark span {
+  font-family: "Sora", system-ui, sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: 0.04em; color: var(--navy);
+}
+
+.iconbtn {
+  width: 46px; height: 46px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 23px; background: var(--surface);
+  box-shadow: 0 6px 18px rgba(16,32,51,0.14); cursor: pointer;
+}
+
+.routepill {
+  flex-grow: 1; min-width: 0;
+  display: flex; flex-direction: column; justify-content: center; gap: 1px;
+  height: 46px; padding: 0 14px;
+  background: var(--surface); border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(16,32,51,0.14);
+}
+
+.routepill b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.routepill span { font-size: 11px; font-weight: 500; color: var(--muted); }
+
+/* sheet */
+.sheet {
+  position: relative; z-index: 2; flex-grow: 1;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 12px 18px 24px; margin-top: -26px;
+  background: var(--surface);
+  border-radius: 26px 26px 0 0;
+  box-shadow: 0 -10px 34px rgba(16,32,51,0.14);
+  overflow-y: auto;
+}
+
+.grabber { width: 44px; height: 4px; flex-shrink: 0; align-self: center; border-radius: 2px; background: #D9E2E8; }
+
+.sheet-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.sheet h1 { margin: 0; font-family: "Sora", system-ui, sans-serif; font-size: 21px; font-weight: 700; }
+.count { font-size: 12px; font-weight: 600; color: var(--green); }
+
+/* route field */
+.routefield {
+  display: flex; align-items: center; gap: 12px; padding: 14px;
+  background: var(--surface-soft); border: 1px solid var(--line-soft); border-radius: 16px;
+}
+
+.rail { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.dot-start { width: 10px; height: 10px; border-radius: 50%; background: var(--green); }
+.dot-end { width: 10px; height: 10px; border-radius: 2px; background: var(--navy); }
+.rail-line { width: 2px; height: 26px; background: #C6D5CB; }
+
+.fields { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 1px; margin: 0; }
+
+.field label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted);
+}
+
+.field input {
+  width: 100%; border: none; background: transparent; padding: 0;
+  font-size: 14px; font-weight: 600; color: var(--ink);
+}
+
+.hairline { height: 1px; background: var(--line); }
+
+.swapbtn {
+  width: 38px; height: 38px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line-soft); border-radius: 19px; background: var(--surface); cursor: pointer;
+}
+
+/* controls */
+.row { display: flex; gap: 10px; }
+.row--tight { gap: 8px; flex-wrap: wrap; }
+
+.ghostbtn {
+  flex-grow: 1; min-height: 46px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid var(--line-soft); border-radius: 14px; background: var(--surface);
+  font-size: 13px; font-weight: 600; color: var(--ink); cursor: pointer;
+}
+
+.smallbtn {
+  height: 32px; flex-shrink: 0; padding: 0 12px;
+  border: 1px solid var(--line-soft); border-radius: 10px; background: var(--surface);
+  font-size: 12px; font-weight: 700; color: var(--navy); cursor: pointer;
+}
+
+.togglerow {
+  display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 14px;
+  border: 1px solid var(--line-soft); border-radius: 14px; background: var(--surface);
+  text-align: left; cursor: pointer;
+}
+
+.togglerow .label { flex-grow: 1; font-size: 13px; font-weight: 600; }
+
+.switch {
+  width: 44px; height: 26px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: flex-start;
+  padding: 3px; border-radius: 13px; background: #D9E2E8;
+}
+
+.switch i { width: 20px; height: 20px; border-radius: 10px; background: #FFFFFF; box-shadow: 0 1px 3px rgba(16,32,51,0.28); }
+
+.togglerow[aria-pressed="true"] { background: #F5F1FE; border-color: #C9B8F5; }
+.togglerow[aria-pressed="true"] .switch { background: #8B5CF6; justify-content: flex-end; }
+
+.cta {
+  min-height: 54px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  border: none; border-radius: 16px; background: var(--navy); color: #FFFFFF;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 8px 20px rgba(12,55,104,0.28);
+}
+
+/* step 2 — pools */
+.poolcard {
+  display: flex; flex-direction: column; gap: 12px; padding: 16px;
+  border: 1.5px solid var(--navy); border-radius: 18px; background: var(--surface);
+  box-shadow: 0 6px 18px rgba(16,32,51,0.08);
+}
+
+.poolhead { display: flex; align-items: center; gap: 12px; }
+
+.avatar {
+  width: 46px; height: 46px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; border-radius: 23px;
+  font-family: "Sora", system-ui, sans-serif; font-size: 16px; font-weight: 700;
+}
+
+.avatar--navy { background: #E4EDF8; color: var(--navy); }
+.avatar--purple { background: #F3ECFB; color: var(--purple); }
+.avatar--teal { background: #E6F3F5; color: #0B7A85; }
+
+.who { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.who .name { display: flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 700; }
+.who .meta { font-size: 12px; color: var(--muted); }
+
+.rating { display: flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: var(--amber); }
+
+.fare { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.fare b { font-family: "Sora", system-ui, sans-serif; font-size: 18px; font-weight: 700; }
+.fare span { font-size: 11px; color: var(--muted); }
+.fare .link { font-size: 11px; font-weight: 700; color: var(--navy); }
+
+.legs { display: flex; align-items: center; gap: 10px; padding: 11px 12px; background: var(--surface-soft); border-radius: 12px; }
+.legs .rail .dot-start, .legs .rail .dot-end { width: 8px; height: 8px; }
+.legs .rail .rail-line { height: 14px; }
+.legs__text { flex-grow: 1; display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 600; }
+
+.badge { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 13px; font-size: 11px; font-weight: 700; }
+.badge--green { background: #EAF6ED; color: var(--green); }
+.badge--navy { background: #E4EDF8; color: var(--navy); }
+.badge--purple { background: #F3ECFB; color: var(--purple); height: 20px; font-size: 10px; }
+
+.requestbtn {
+  min-height: 48px; border: none; border-radius: 14px;
+  background: var(--navy); color: #FFFFFF; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+
+.requestbtn[data-sent="true"] { background: #EAF6ED; color: var(--green); cursor: default; }
+
+.sentnote {
+  display: flex; align-items: center; gap: 8px; padding: 11px 12px;
+  background: #EAF6ED; border: 1px solid #C9E5D1; border-radius: 12px;
+  font-size: 12px; font-weight: 600; color: #2A5C38;
+}
+
+.poolrow {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+  border: 1px solid var(--line); border-radius: 18px; background: var(--surface);
+  width: 100%; text-align: left; cursor: pointer;
+}
+
+.poolrow .avatar { width: 44px; height: 44px; border-radius: 22px; font-size: 15px; }
+.poolrow .name { font-size: 14px; }
+
+.footnote { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+
+<body>
+<main class="screen" id="screen" data-step="1">
+
+  <div class="map">
+    <svg viewBox="0 0 390 452" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="390" height="452" fill="#E7EEE9"/>
+      <rect x="-20" y="-10" width="150" height="110" rx="10" fill="#DDE7E0"/>
+      <rect x="150" y="-10" width="130" height="110" rx="10" fill="#DDE7E0"/>
+      <rect x="300" y="-10" width="110" height="110" rx="10" fill="#DDE7E0"/>
+      <rect x="-20" y="125" width="150" height="120" rx="10" fill="#DDE7E0"/>
+      <rect x="150" y="125" width="130" height="120" rx="10" fill="#DDE7E0"/>
+      <rect x="240" y="150" width="170" height="130" rx="14" fill="#CCE3D0"/>
+      <rect x="-20" y="270" width="120" height="130" rx="10" fill="#DDE7E0"/>
+      <rect x="120" y="270" width="110" height="100" rx="10" fill="#DDE7E0"/>
+      <rect x="250" y="305" width="160" height="90" rx="10" fill="#DDE7E0"/>
+      <path d="M-20 420 C 60 398 130 448 210 424 L 410 424 L 410 462 L -20 462 Z" fill="#C9DEEE"/>
+      <g stroke="#FFFFFF" stroke-linecap="round">
+        <path d="M-20 112 H410" stroke-width="16"/>
+        <path d="M-20 258 H410" stroke-width="16"/>
+        <path d="M-20 388 H410" stroke-width="12"/>
+        <path d="M138 -10 V462" stroke-width="16"/>
+        <path d="M232 -10 V462" stroke-width="12"/>
+        <path d="M108 112 L 232 258" stroke-width="9"/>
+        <path d="M330 -10 V150" stroke-width="9"/>
+      </g>
+      <g stroke="#B9CBBF" stroke-width="1.4">
+        <path d="M-20 178 H410"/>
+        <path d="M60 -10 V462"/>
+        <path d="M300 258 V462"/>
+      </g>
+      <path d="M96 356 C 118 318 118 286 138 258 C 162 224 196 208 232 186 C 268 164 292 138 306 104"
+            stroke="#0C3768" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+      <circle cx="96" cy="356" r="11" fill="#FFFFFF"/>
+      <circle cx="96" cy="356" r="6.5" fill="#1E7A34"/>
+      <path d="M306 76 C 316 76 323 84 323 93 C 323 104 306 120 306 120 C 306 120 289 104 289 93 C 289 84 296 76 306 76 Z" fill="#0C3768"/>
+      <circle cx="306" cy="93" r="6" fill="#FFFFFF"/>
+      <g opacity="0.9">
+        <circle cx="180" cy="300" r="13" fill="#FFFFFF" stroke="#DCE5DE"/>
+        <path d="M173 302 h14 M175 302 v-4 l3 -3 h6 l3 3 v4" stroke="#0C3768" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      </g>
+      <g opacity="0.9">
+        <circle cx="258" cy="128" r="13" fill="#FFFFFF" stroke="#DCE5DE"/>
+        <path d="M251 130 h14 M253 130 v-4 l3 -3 h6 l3 3 v4" stroke="#0C3768" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      </g>
+      <text x="270" y="212" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#6E8477">Hoodi Park</text>
+      <text x="24" y="242" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#8C9C90">Whitefield</text>
+    </svg>
+  </div>
+
+  <!-- top bar, step 1 -->
+  <div class="topbar topbar--split" id="bar1">
+    <div class="brandmark">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M3 14 l2 -6 a3 3 0 0 1 2.8 -2 h8.4 a3 3 0 0 1 2.8 2 l2 6" stroke="#1E7A34" stroke-width="2" stroke-linecap="round"/>
+        <path d="M3 14 h18 v4 h-18 z" stroke="#0C3768" stroke-width="2" stroke-linejoin="round"/>
+        <circle cx="7.5" cy="18" r="1.6" fill="#0C3768"/><circle cx="16.5" cy="18" r="1.6" fill="#0C3768"/>
+      </svg>
+      <span>CORIDE</span>
+    </div>
+    <button type="button" class="iconbtn" aria-label="Your profile">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="8.5" r="3.6" stroke="#0C3768" stroke-width="2"/>
+        <path d="M4.8 20 c1.4 -3.8 4.2 -5.6 7.2 -5.6 s5.8 1.8 7.2 5.6" stroke="#0C3768" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- top bar, step 2 -->
+  <div class="topbar" id="bar2" hidden>
+    <button type="button" class="iconbtn" id="back" aria-label="Change your search">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M19 12 H6 M11 6 l-6 6 6 6" stroke="#0C3768" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="routepill">
+      <b id="summaryRoute">Whitefield to Electronic City</b>
+      <span id="summaryWhen">Today · 9:00 AM · 1 seat</span>
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <section class="sheet" id="step1">
+    <span class="grabber" aria-hidden="true"></span>
+
+    <div class="sheet-head">
+      <h1>Find your pool</h1>
+      <span class="count">18 pools nearby</span>
+    </div>
+
+    <div class="routefield">
+      <div class="rail" aria-hidden="true">
+        <span class="dot-start"></span>
+        <span class="rail-line"></span>
+        <span class="dot-end"></span>
+      </div>
+      <div class="fields">
+        <p class="field">
+          <label for="pickup">Pickup</label>
+          <input id="pickup" type="text" value="Whitefield Main Rd">
+        </p>
+        <span class="hairline" aria-hidden="true"></span>
+        <p class="field">
+          <label for="drop">Drop</label>
+          <input id="drop" type="text" value="Electronic City Phase 1">
+        </p>
+      </div>
+      <button type="button" class="swapbtn" id="swap" aria-label="Swap pickup and drop">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M8 4 v16 M8 20 l-4 -4 M16 20 V4 M16 4 l4 4" stroke="#0C3768" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="row">
+      <button type="button" class="ghostbtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3.5" y="5" width="17" height="15.5" rx="3" stroke="#0C3768" stroke-width="1.8"/>
+          <path d="M8 3.5 v3 M16 3.5 v3 M3.5 10 h17" stroke="#0C3768" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        Today
+      </button>
+      <button type="button" class="ghostbtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.5" stroke="#0C3768" stroke-width="1.8"/>
+          <path d="M12 7.5 V12 l3 2" stroke="#0C3768" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        9:00 AM
+      </button>
+    </div>
+
+    <button type="button" class="togglerow" id="womenOnly" aria-pressed="false">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="9" r="5" stroke="#8B5CF6" stroke-width="2"/>
+        <path d="M12 14 v6 M9 18 h6" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="label">Women-only pool</span>
+      <span class="switch" aria-hidden="true"><i></i></span>
+    </button>
+
+    <button type="button" class="cta" id="search">
+      Search pools
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 12 h13 M13 6 l6 6 -6 6" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="sheet" id="step2" hidden>
+    <span class="grabber" aria-hidden="true"></span>
+
+    <div class="sheet-head">
+      <h1>3 pools on your route</h1>
+      <button type="button" class="smallbtn">Filter</button>
+    </div>
+
+    <article class="poolcard">
+      <div class="poolhead">
+        <span class="avatar avatar--navy" aria-hidden="true">RM</span>
+        <div class="who">
+          <span class="name">
+            Rahul M.
+            <span class="rating">
+              <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 l2.9 6 6.6 0.9 -4.8 4.6 1.2 6.5 -5.9 -3.1 -5.9 3.1 1.2 -6.5 -4.8 -4.6 6.6 -0.9 Z" fill="#E9A81A"/></svg>
+              4.9
+            </span>
+          </span>
+          <span class="meta">Toyota Hyryder · 2 seats left</span>
+        </div>
+        <span class="fare"><b>₹95</b><span>per seat</span></span>
+      </div>
+
+      <div class="legs">
+        <div class="rail" aria-hidden="true">
+          <span class="dot-start"></span>
+          <span class="rail-line"></span>
+          <span class="dot-end"></span>
+        </div>
+        <div class="legs__text">
+          <span>8:45 AM · Whitefield Main Rd</span>
+          <span>9:40 AM · Electronic City P1</span>
+        </div>
+      </div>
+
+      <div class="row row--tight">
+        <span class="badge badge--green">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 13 l4 4 10 -10" stroke="#1E7A34" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Office verified
+        </span>
+        <span class="badge badge--navy">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 l7 3 v6 c0 4.5 -3 7.5 -7 9 c-4 -1.5 -7 -4.5 -7 -9 V6 Z" stroke="#0C3768" stroke-width="2.2" stroke-linejoin="round"/></svg>
+          ID verified
+        </span>
+      </div>
+
+      <button type="button" class="requestbtn" id="request" data-sent="false">Request seat</button>
+
+      <p class="sentnote" id="sentNote" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="flex-shrink:0;">
+          <circle cx="12" cy="12" r="9" stroke="#2A5C38" stroke-width="1.8"/>
+          <path d="M12 7.5 V12 l3 2" stroke="#2A5C38" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        Rahul usually confirms within 5 minutes. We will message you here.
+      </p>
+    </article>
+
+    <button type="button" class="poolrow">
+      <span class="avatar avatar--purple" aria-hidden="true">PS</span>
+      <span class="who">
+        <span class="name">Priya S. <span class="badge badge--purple">Women only</span></span>
+        <span class="meta">9:00 AM · Hyundai i20 · 1 seat left</span>
+      </span>
+      <span class="fare"><b>₹110</b><span class="link">View</span></span>
+    </button>
+
+    <button type="button" class="poolrow">
+      <span class="avatar avatar--teal" aria-hidden="true">AK</span>
+      <span class="who">
+        <span class="name">Arun K.</span>
+        <span class="meta">9:15 AM · Maruti Baleno · 3 seats left</span>
+      </span>
+      <span class="fare"><b>₹85</b><span class="link">View</span></span>
+    </button>
+
+    <p class="footnote">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" stroke="#5A6B7E" stroke-width="1.8"/>
+        <path d="M12 8 v5 M12 16.2 v0.1" stroke="#5A6B7E" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Fare is shared, not charged as a fee.
+    </p>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var screen = document.getElementById("screen");
+  var step1 = document.getElementById("step1");
+  var step2 = document.getElementById("step2");
+  var bar1 = document.getElementById("bar1");
+  var bar2 = document.getElementById("bar2");
+  var pickup = document.getElementById("pickup");
+  var drop = document.getElementById("drop");
+  var summary = document.getElementById("summaryRoute");
+
+  function shortName(value) {
+    return value.split(",")[0].replace(/\s+(Main Rd|Phase \d+)$/i, "").trim();
+  }
+
+  function goTo(step) {
+    var second = step === 2;
+    screen.dataset.step = step;
+    step1.hidden = second;
+    step2.hidden = !second;
+    bar1.hidden = second;
+    bar2.hidden = !second;
+    if (second) summary.textContent = shortName(pickup.value) + " to " + shortName(drop.value);
+    (second ? step2 : step1).scrollTop = 0;
+  }
+
+  document.getElementById("search").addEventListener("click", function () { goTo(2); });
+  document.getElementById("back").addEventListener("click", function () { goTo(1); });
+
+  document.getElementById("swap").addEventListener("click", function () {
+    var held = pickup.value;
+    pickup.value = drop.value;
+    drop.value = held;
+  });
+
+  var toggle = document.getElementById("womenOnly");
+  toggle.addEventListener("click", function () {
+    toggle.setAttribute("aria-pressed", toggle.getAttribute("aria-pressed") === "true" ? "false" : "true");
+  });
+
+  var request = document.getElementById("request");
+  request.addEventListener("click", function () {
+    if (request.dataset.sent === "true") return;
+    request.dataset.sent = "true";
+    request.textContent = "Request sent";
+    document.getElementById("sentNote").hidden = false;
+  });
+})();
+</script>
+</body>
+</html>

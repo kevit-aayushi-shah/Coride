@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CORIDE</title>
+<meta name="theme-color" content="#0C3768">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --navy: #0C3768;
+  --green: #1E7A34;
+  --ink: #102033;
+  --muted: #5A6B7E;
+  --line-soft: #DEE7E1;
+  --surface: #FFFFFF;
+  --surface-soft: #F4F8F5;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+
+body {
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: var(--surface-soft);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+a { text-decoration: none; color: inherit; }
+
+.wrap { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 22px; }
+
+.brand { display: flex; align-items: center; justify-content: center; gap: 9px; }
+.brand span {
+  font-family: "Sora", system-ui, sans-serif;
+  font-size: 20px; font-weight: 700; letter-spacing: 0.05em; color: var(--navy);
+}
+
+.cards { display: flex; flex-direction: column; gap: 14px; }
+
+.card {
+  display: flex; align-items: center; gap: 14px; padding: 18px;
+  background: var(--surface); border: 1px solid var(--line-soft); border-radius: 18px;
+  box-shadow: 0 6px 18px rgba(16,32,51,0.08);
+}
+
+.card__icon {
+  width: 48px; height: 48px; flex-shrink: 0; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; background: #E4EDF8;
+}
+
+.card__text { flex-grow: 1; display: flex; flex-direction: column; gap: 3px; }
+.card__text b { font-family: "Sora", system-ui, sans-serif; font-size: 16px; font-weight: 700; }
+.card__text span { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 14 l2 -6 a3 3 0 0 1 2.8 -2 h8.4 a3 3 0 0 1 2.8 2 l2 6" stroke="#1E7A34" stroke-width="2" stroke-linecap="round"/>
+      <path d="M3 14 h18 v4 h-18 z" stroke="#0C3768" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="7.5" cy="18" r="1.6" fill="#0C3768"/><circle cx="16.5" cy="18" r="1.6" fill="#0C3768"/>
+    </svg>
+    <span>CORIDE</span>
+  </div>
+
+  <div class="cards">
+    <a class="card" href="find-a-ride.html">
+      <span class="card__icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M12 21 c-4.2 -4 -7 -7.4 -7 -11 a7 7 0 0 1 14 0 c0 3.6 -2.8 7 -7 11 Z" stroke="#0C3768" stroke-width="2" stroke-linejoin="round"/>
+          <circle cx="12" cy="10" r="2.4" stroke="#0C3768" stroke-width="2"/>
+        </svg>
+      </span>
+      <span class="card__text">
+        <b>Find a ride</b>
+        <span>Search pools on your route and request a seat</span>
+      </span>
+    </a>
+
+    <a class="card" href="offer-a-ride.html">
+      <span class="card__icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M3 14 l2 -6 a3 3 0 0 1 2.8 -2 h8.4 a3 3 0 0 1 2.8 2 l2 6" stroke="#0C3768" stroke-width="2" stroke-linecap="round"/>
+          <path d="M3 14 h18 v4 h-18 z" stroke="#0C3768" stroke-width="2" stroke-linejoin="round"/>
+          <circle cx="7.5" cy="18" r="1.6" fill="#0C3768"/>
+          <circle cx="16.5" cy="18" r="1.6" fill="#0C3768"/>
+        </svg>
+      </span>
+      <span class="card__text">
+        <b>Offer a ride</b>
+        <span>Publish your route, seats and schedule</span>
+      </span>
+    </a>
+  </div>
+</div>
+</body>
+</html>

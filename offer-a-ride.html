@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CORIDE · Offer a ride</title>
+<meta name="theme-color" content="#0C3768">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --navy: #0C3768;
+  --green: #1E7A34;
+  --ink: #102033;
+  --muted: #5A6B7E;
+  --line: #E2EAE4;
+  --line-soft: #DEE7E1;
+  --surface: #FFFFFF;
+  --surface-soft: #F4F8F5;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; height: 100%; }
+
+body {
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: #FFFFFF;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: inherit; }
+a { text-decoration: none; color: inherit; }
+:focus-visible { outline: 3px solid rgba(18,165,179,0.55); outline-offset: 2px; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* phone shell */
+.screen {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+}
+
+/* map */
+.map { position: relative; flex-shrink: 0; height: 36%; min-height: 240px; overflow: hidden; background: #E7EEE9; }
+.map svg { display: block; width: 100%; height: 100%; }
+
+/* floating chrome */
+.topbar { position: absolute; top: 18px; left: 18px; right: 18px; z-index: 3; display: flex; align-items: center; gap: 10px; }
+
+.iconbtn {
+  width: 46px; height: 46px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 23px; background: var(--surface);
+  box-shadow: 0 6px 18px rgba(16,32,51,0.14); cursor: pointer;
+}
+
+.pilltitle {
+  display: flex; align-items: center; height: 46px; padding: 0 16px;
+  background: var(--surface); border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(16,32,51,0.14);
+  font-size: 14px; font-weight: 700;
+}
+
+/* sheet */
+.sheet {
+  position: relative; z-index: 2; flex-grow: 1;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 12px 18px 24px; margin-top: -26px;
+  background: var(--surface);
+  border-radius: 26px 26px 0 0;
+  box-shadow: 0 -10px 34px rgba(16,32,51,0.14);
+  overflow-y: auto;
+}
+
+.grabber { width: 44px; height: 4px; flex-shrink: 0; align-self: center; border-radius: 2px; background: #D9E2E8; }
+
+/* route */
+.routefield {
+  display: flex; align-items: center; gap: 12px; padding: 14px;
+  background: var(--surface-soft); border: 1px solid var(--line-soft); border-radius: 16px;
+}
+
+.rail { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.dot-start { width: 10px; height: 10px; border-radius: 50%; background: var(--green); }
+.dot-end { width: 10px; height: 10px; border-radius: 2px; background: var(--navy); }
+.rail-line { width: 2px; height: 22px; background: #C6D5CB; }
+
+.routefield__text { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.routefield__text b { font-size: 13px; }
+
+.smallbtn {
+  height: 32px; flex-shrink: 0; padding: 0 12px;
+  border: 1px solid var(--line-soft); border-radius: 10px; background: var(--surface);
+  font-size: 12px; font-weight: 700; color: var(--navy); cursor: pointer;
+}
+
+/* line cards */
+.linecard { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 16px; }
+
+.linecard__icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12px; background: #E4EDF8;
+}
+
+.linecard__text { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.linecard__text b { font-size: 14px; }
+.linecard__text span { font-size: 12px; color: var(--muted); }
+
+/* stepper */
+.stepper { display: flex; align-items: center; gap: 4px; }
+
+.stepper button {
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line-soft); border-radius: 12px; background: var(--surface); cursor: pointer;
+}
+
+.stepper button:disabled { opacity: 0.4; cursor: default; }
+
+.stepper output {
+  width: 34px; text-align: center;
+  font-family: "Sora", system-ui, sans-serif; font-size: 18px; font-weight: 700;
+}
+
+/* repeat days */
+.block { display: flex; flex-direction: column; gap: 10px; }
+.block__head { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; }
+.block__head span { font-size: 12px; font-weight: 600; color: var(--muted); }
+
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.daychip {
+  width: 46px; height: 46px; flex-shrink: 0;
+  border: 1px solid var(--line-soft); border-radius: 14px; background: var(--surface);
+  font-size: 13px; font-weight: 700; color: var(--muted); cursor: pointer;
+}
+
+.daychip[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #FFFFFF; }
+
+/* earnings */
+.earncard {
+  display: flex; align-items: center; gap: 12px; padding: 14px;
+  background: #EAF6ED; border: 1px solid #C9E5D1; border-radius: 16px;
+}
+
+.earncard__left { flex-grow: 1; display: flex; flex-direction: column; gap: 2px; }
+.earncard__left span { font-size: 12px; font-weight: 600; color: #2A5C38; }
+.earncard__left b { font-family: "Sora", system-ui, sans-serif; font-size: 22px; font-weight: 700; color: var(--green); }
+.earncard__note { max-width: 130px; text-align: right; font-size: 11px; font-weight: 600; color: #2A5C38; }
+
+/* cta */
+.cta {
+  min-height: 54px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 16px; background: var(--navy); color: #FFFFFF;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 8px 20px rgba(12,55,104,0.28);
+}
+</style>
+</head>
+
+<body>
+<main class="screen">
+
+  <div class="map">
+    <svg viewBox="0 0 390 300" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="390" height="300" fill="#E7EEE9"/>
+      <rect x="-20" y="-10" width="150" height="100" rx="10" fill="#DDE7E0"/>
+      <rect x="160" y="-10" width="140" height="100" rx="10" fill="#DDE7E0"/>
+      <rect x="240" y="130" width="180" height="120" rx="14" fill="#CCE3D0"/>
+      <rect x="-20" y="130" width="140" height="120" rx="10" fill="#DDE7E0"/>
+      <rect x="140" y="215" width="90" height="100" rx="10" fill="#DDE7E0"/>
+      <g stroke="#FFFFFF" stroke-linecap="round">
+        <path d="M-20 110 H410" stroke-width="16"/>
+        <path d="M-20 268 H410" stroke-width="12"/>
+        <path d="M136 -10 V310" stroke-width="16"/>
+        <path d="M232 -10 V310" stroke-width="11"/>
+      </g>
+      <g stroke="#B9CBBF" stroke-width="1.4">
+        <path d="M-20 178 H410"/>
+        <path d="M64 -10 V310"/>
+      </g>
+      <path d="M68 250 C 96 222 116 176 136 110 C 154 56 226 36 306 30"
+            stroke="#1E7A34" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+      <circle cx="68" cy="250" r="10" fill="#FFFFFF"/>
+      <circle cx="68" cy="250" r="6" fill="#1E7A34"/>
+      <path d="M306 8 C 315 8 321 15 321 23 C 321 33 306 46 306 46 C 306 46 291 33 291 23 C 291 15 297 8 306 8 Z" fill="#0C3768"/>
+      <circle cx="306" cy="23" r="5.4" fill="#FFFFFF"/>
+      <text x="262" y="196" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#6E8477">Hoodi Park</text>
+    </svg>
+  </div>
+
+  <div class="topbar">
+    <a class="iconbtn" href="#" aria-label="Go back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M19 12 H6 M11 6 l-6 6 6 6" stroke="#0C3768" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+    <div class="pilltitle">Offer a ride</div>
+  </div>
+
+  <section class="sheet">
+    <span class="grabber" aria-hidden="true"></span>
+
+    <div class="routefield">
+      <div class="rail" aria-hidden="true">
+        <span class="dot-start"></span>
+        <span class="rail-line"></span>
+        <span class="dot-end"></span>
+      </div>
+      <div class="routefield__text">
+        <b>Whitefield Main Rd</b>
+        <b>Electronic City Phase 1</b>
+      </div>
+      <button type="button" class="smallbtn">Edit</button>
+    </div>
+
+    <div class="linecard">
+      <span class="linecard__icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M3 14 l2 -6 a3 3 0 0 1 2.8 -2 h8.4 a3 3 0 0 1 2.8 2 l2 6" stroke="#0C3768" stroke-width="2" stroke-linecap="round"/>
+          <path d="M3 14 h18 v4 h-18 z" stroke="#0C3768" stroke-width="2" stroke-linejoin="round"/>
+          <circle cx="7.5" cy="18" r="1.6" fill="#0C3768"/>
+          <circle cx="16.5" cy="18" r="1.6" fill="#0C3768"/>
+        </svg>
+      </span>
+      <span class="linecard__text">
+        <b>Toyota Hyryder</b>
+        <span>KA 05 MJ 4417 · White</span>
+      </span>
+      <button type="button" class="smallbtn">Change</button>
+    </div>
+
+    <div class="linecard">
+      <span class="linecard__text">
+        <b>Seats available</b>
+        <span>You keep the driver seat</span>
+      </span>
+      <div class="stepper" id="seats" data-fare="95" data-min="1" data-max="4">
+        <button type="button" data-step="-1" aria-label="Fewer seats">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 12 h12" stroke="#0C3768" stroke-width="2.4" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <output aria-live="polite">2</output>
+        <button type="button" data-step="1" aria-label="More seats">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 6 v12 M6 12 h12" stroke="#0C3768" stroke-width="2.4" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="block__head">
+        Repeat on
+        <span>Departs 8:45 AM</span>
+      </div>
+      <div class="row">
+        <button type="button" class="daychip" data-day aria-pressed="true"><span class="visually-hidden">Monday</span>M</button>
+        <button type="button" class="daychip" data-day aria-pressed="true"><span class="visually-hidden">Tuesday</span>T</button>
+        <button type="button" class="daychip" data-day aria-pressed="true"><span class="visually-hidden">Wednesday</span>W</button>
+        <button type="button" class="daychip" data-day aria-pressed="true"><span class="visually-hidden">Thursday</span>T</button>
+        <button type="button" class="daychip" data-day aria-pressed="false"><span class="visually-hidden">Friday</span>F</button>
+      </div>
+    </div>
+
+    <div class="earncard">
+      <span class="earncard__left">
+        <span>You recover per trip</span>
+        <b id="earn">₹190</b>
+      </span>
+      <span class="earncard__note">Fuel and toll shared across riders</span>
+    </div>
+
+    <button type="button" class="cta">Publish ride</button>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var stepper = document.getElementById("seats");
+  var output = stepper.querySelector("output");
+  var minus = stepper.querySelector("[data-step='-1']");
+  var plus = stepper.querySelector("[data-step='1']");
+  var earn = document.getElementById("earn");
+
+  var perSeat = Number(stepper.dataset.fare);
+  var min = Number(stepper.dataset.min);
+  var max = Number(stepper.dataset.max);
+  var seats = Number(output.textContent);
+
+  function paint() {
+    output.textContent = seats;
+    earn.textContent = "₹" + seats * perSeat;
+    minus.disabled = seats <= min;
+    plus.disabled = seats >= max;
+  }
+
+  stepper.addEventListener("click", function (event) {
+    var btn = event.target.closest("[data-step]");
+    if (!btn || btn.disabled) return;
+    seats = Math.min(max, Math.max(min, seats + Number(btn.dataset.step)));
+    paint();
+  });
+
+  document.querySelectorAll("[data-day]").forEach(function (chip) {
+    chip.addEventListener("click", function () {
+      chip.setAttribute("aria-pressed", chip.getAttribute("aria-pressed") === "true" ? "false" : "true");
+    });
+  });
+
+  paint();
+})();
+</script>
+</body>
+</html>
